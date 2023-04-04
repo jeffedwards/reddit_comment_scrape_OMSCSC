@@ -123,7 +123,7 @@ ax = df_combined.plot(
     ylabel='Number of Responses',
     figsize=(10, 5))
 ax.get_figure().show()
-# ax.get_figure().savefig('decision_date_trend.png', format='png')
+# ax.get_figure().savefig('./images/decision_date_trend.png', format='png')
 
 # Show day of week
 df.groupby(by=['decision_dayofweek_number', 'decision_day']).size()
