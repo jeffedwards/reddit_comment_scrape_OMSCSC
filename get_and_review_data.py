@@ -132,5 +132,6 @@ df_dow.rename(columns={0: 'responses'}, inplace=True)
 n_responses = df_dow['responses'].sum()
 df_dow['pct_of_total'] = df_dow.apply(lambda x: round(x['responses']/n_responses*100, 2), axis=1)
 df_dow
+
 # Review counts of statuses
 df.groupby(by='status_cleaned').size()
