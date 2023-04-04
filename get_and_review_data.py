@@ -104,7 +104,7 @@ df['status_cleaned'].replace('', 'unknown', inplace=True)
 df_dates = pd.DataFrame(
     {'date_': pd.date_range(start=df['decision_date_cleaned3'].min(), end=df['decision_date_cleaned3'].max())})
 
-df_counts = pd.DataFrame(df.groupby(by='decision_date_cleaned3').size())
+df_counts = pd.DataFrame(df.groupby(by=['decision_date_cleaned3', 'decision_day']).size()).reset_index()
 df_combined = pd.merge(left=df_dates, right=df_counts, left_on='date_', right_on='decision_date_cleaned3', how='left')
 df_combined.rename(columns={0: 'responses'}, inplace=True)
 df_combined.fillna(0, inplace=True)
@@ -123,9 +123,14 @@ ax = df_combined.plot(
     ylabel='Number of Responses',
     figsize=(10, 5))
 ax.get_figure().show()
-# ax.get_figure().savefig('./images/decision_date_trend.png', format='png')
+# plt.show()
+# ax.get_figure().savefig('decision_date_trend.png', format='png')
 
 # Show day of week
-df.groupby(by=['decision_dayofweek_number', 'decision_day']).size()
+df_dow = df.groupby(by=['decision_dayofweek_number', 'decision_day']).size().reset_index()
+df_dow.rename(columns={0: 'responses'}, inplace=True)
+n_responses = df_dow['responses'].sum()
+df_dow['pct_of_total'] = df_dow.apply(lambda x: round(x['responses']/n_responses*100, 2), axis=1)
+df_dow
 # Review counts of statuses
 df.groupby(by='status_cleaned').size()
