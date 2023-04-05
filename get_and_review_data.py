@@ -2,24 +2,29 @@
 # Instructions
 
 # Get Reddit API keys from here: https://www.reddit.com/prefs/apps
-# Update variables and setting as desired
+# Add credentials to the .env file (see the example file: example.env)
 # Run script and have fun
 
 
 ########################################################################################################################
 # Imports
+
+import os
 import pandas as pd
 import praw
 
-from matplotlib import pyplot as plt
+from dotenv import load_dotenv
 
 
 ########################################################################################################################
 # API Setup / variables / settings
 
-reddit = praw.Reddit(client_id='',
-                     client_secret='',
-                     user_agent='')
+# Load environment variables
+load_dotenv()
+
+reddit = praw.Reddit(client_id=os.environ.get('CLIENT_ID'),
+                     client_secret=os.environ.get('CLIENT_SECRET'),
+                     user_agent=os.environ.get('USER_AGENT'))
 
 # Define the subreddit and the thread ID
 subreddit_name = 'OMSCS'
@@ -126,12 +131,22 @@ ax.get_figure().show()
 # plt.show()
 # ax.get_figure().savefig('decision_date_trend.png', format='png')
 
-# Show day of week
+print('Number of decisions received by day of week')
+df.groupby(by=['decision_date_cleaned3', 'decision_dayofweek_number', 'decision_day']).agg({'decision_dayofweek_number': ['count', 'size']})
 df_dow = df.groupby(by=['decision_dayofweek_number', 'decision_day']).size().reset_index()
 df_dow.rename(columns={0: 'responses'}, inplace=True)
 n_responses = df_dow['responses'].sum()
 df_dow['pct_of_total'] = df_dow.apply(lambda x: round(x['responses']/n_responses*100, 2), axis=1)
 df_dow
+
+print('Frequency that decisions are sent out on a day of the week')
+df_dow_simp = df.query("decision_day != 'Tuesday'")  # Dropping the one Tuesday, because I don't trust it
+df_dow_simp = df_dow_simp[['decision_date_cleaned3', 'decision_dayofweek_number', 'decision_day']].drop_duplicates().sort_values(by='decision_date_cleaned3')
+df_dow_simp = df_dow_simp.groupby(by='decision_day').agg({'decision_dayofweek_number': 'min', 'decision_day': 'count'}).sort_values(by='decision_dayofweek_number')
+df_dow_simp = df_dow_simp.rename(columns={'decision_dayofweek_number': 'day_of_week_number', 'decision_day': 'frequency'}).reset_index()
+n_days_decisions_released = df_dow_simp['frequency'].sum()
+df_dow_simp['pct_occurrence'] = df_dow_simp['frequency'].apply(lambda x: round(x/n_days_decisions_released * 100, 2))
+df_dow_simp
 
 # Review counts of statuses
 df.groupby(by='status_cleaned').size()
